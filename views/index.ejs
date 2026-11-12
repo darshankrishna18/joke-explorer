@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joke Explorer 🎭</title>
+
+  <!-- Google Fonts: Inter for clean, modern typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =====================================================
+       CSS RESET & DESIGN TOKENS
+       ===================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent: #e94560;
+      --accent-glow: rgba(233, 69, 96, 0.35);
+      --text-primary: #f1f1f1;
+      --text-muted: #9baacf;
+      --badge-bg: rgba(233, 69, 96, 0.15);
+      --badge-border: rgba(233, 69, 96, 0.4);
+      --error-bg: rgba(255, 80, 80, 0.1);
+      --error-border: rgba(255, 80, 80, 0.4);
+      --shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      --radius: 20px;
+      --transition: 0.3s ease;
+    }
+
+    /* =====================================================
+       BASE LAYOUT
+       ===================================================== */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: var(--text-primary);
+    }
+
+    /* =====================================================
+       HEADER
+       ===================================================== */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    header .emoji {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 0.5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    header h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #f1f1f1 0%, #e94560 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    /* =====================================================
+       MAIN CARD  (Glassmorphism)
+       ===================================================== */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      padding: 2.5rem 3rem;
+      max-width: 680px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      animation: slideUp 0.6s ease both;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =====================================================
+       CATEGORY BADGE
+       ===================================================== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--badge-bg);
+      border: 1px solid var(--badge-border);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.35rem 0.9rem;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* =====================================================
+       JOKE TEXT
+       ===================================================== */
+
+    /* Single-type joke */
+    .joke-single {
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      font-weight: 600;
+      line-height: 1.65;
+      color: var(--text-primary);
+    }
+
+    /* Two-part joke */
+    .joke-setup {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      font-weight: 600;
+      line-height: 1.65;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .joke-delivery-wrapper {
+      border-top: 1px solid var(--card-border);
+      padding-top: 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .punchline-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-top: 0.3rem;
+      white-space: nowrap;
+    }
+
+    .joke-delivery {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: 400;
+      line-height: 1.65;
+      color: #cdd6f4;
+    }
+
+    /* =====================================================
+       JOKE META  (ID, flags)
+       ===================================================== */
+    .joke-meta {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .meta-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-right: auto;
+    }
+
+    .flag-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.2rem 0.65rem;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text-muted);
+    }
+
+    /* =====================================================
+       REFRESH BUTTON
+       ===================================================== */
+    .btn-refresh {
+      display: block;
+      width: 100%;
+      margin-top: 2rem;
+      padding: 0.9rem 1.5rem;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      box-shadow: 0 8px 25px var(--accent-glow);
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+
+    .btn-refresh:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px var(--accent-glow);
+      background: #ff6b81;
+    }
+
+    .btn-refresh:active { transform: translateY(0); }
+
+    /* =====================================================
+       ERROR STATE
+       ===================================================== */
+    .error-card {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      border-radius: var(--radius);
+      padding: 2rem 2.5rem;
+      text-align: center;
+      animation: slideUp 0.5s ease both;
+    }
+
+    .error-card .error-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+    .error-card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ff6b81;
+      margin-bottom: 0.5rem;
+    }
+
+    .error-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* =====================================================
+       FOOTER
+       ===================================================== */
+    footer {
+      margin-top: 2rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* =====================================================
+       RESPONSIVE TWEAKS
+       ===================================================== */
+    @media (max-width: 480px) {
+      .card { padding: 1.75rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+  <header>
+    <span class="emoji">🎭</span>
+    <h1>Joke Explorer</h1>
+    <p>Fresh jokes, served one click at a time.</p>
+  </header>
+
+  <!-- =====================================================
+       EJS CONDITIONAL — Show error OR show joke
+       The 'error' and 'joke' variables are passed from index.js
+       via res.render("index", { joke, error })
+       ===================================================== -->
+
+  <% if (error) { %>
+    <!-- ——————— ERROR STATE ——————— -->
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h2>Something went wrong</h2>
+      <!-- Display the error message string passed from the backend -->
+      <p><%= error %></p>
+    </div>
+
+  <% } else { %>
+    <!-- ——————— SUCCESS STATE: render the joke card ——————— -->
+    <div class="card">
+
+      <!-- Category badge -->
+      <div class="badge">
+        📂 &nbsp;<%= joke.category %>
+      </div>
+
+      <!-- ——— Joke body ——— -->
+      <%# Check the joke 'type' to decide how to render the content %>
+
+      <% if (joke.type === "single") { %>
+        <!-- SINGLE-TYPE joke: one block of text -->
+        <p class="joke-single"><%= joke.joke %></p>
+
+      <% } else { %>
+        <!-- TWO-PART joke: "setup" question + "delivery" punchline -->
+        <p class="joke-setup"><%= joke.setup %></p>
+
+        <div class="joke-delivery-wrapper">
+          <span class="punchline-label">👉 Punchline</span>
+          <p class="joke-delivery"><%= joke.delivery %></p>
+        </div>
+      <% } %>
+
+      <!-- ——— Joke meta info (ID + content flags) ——— -->
+      <div class="joke-meta">
+        <span class="meta-label">Joke #<%= joke.id %></span>
+
+        <%# Render a flag tag for each active content flag %>
+        <% for (const [flag, isSet] of Object.entries(joke.flags)) { %>
+          <% if (isSet) { %>
+            <span class="flag-tag"><%= flag %></span>
+          <% } %>
+        <% } %>
+      </div>
+
+      <!-- ——— Refresh button: hits the server again for a new joke ——— -->
+      <a href="/" class="btn-refresh">🔄 &nbsp; Get Another Joke</a>
+
+    </div><!-- /.card -->
+
+  <% } %>
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+  <footer>
+    Powered by <a href="https://jokeapi.dev/" target="_blank" rel="noopener">JokeAPI v2</a>
+    &nbsp;·&nbsp; Built with Express · Axios · EJS
+  </footer>
+
+</body>
+</html>
